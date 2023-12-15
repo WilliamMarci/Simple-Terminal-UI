@@ -1,6 +1,6 @@
+#this is the lib of terminal UI by python
 
 import os
-import sys
 import time
 from typing import List
 
@@ -16,14 +16,39 @@ ARROW=['←','↑','→','↓','↖','↗','↘','↙']
 # DOTS=['⠀','⠁','⠂','⠃','⠄','⠅','⠆','⠇','⠈','⠉','⠊','⠋','⠌','⠍','⠎','⠏','⠐','⠑','⠒','⠓','⠔','⠕','⠖','⠗','⠘','⠙','⠚','⠛','⠜','⠝','⠞','⠟','⠠','⠡','⠢','⠣','⠤','⠥','⠦','⠧','⠨','⠩','⠪','⠫','⠬','⠭','⠮','⠯','⠰','⠱','⠲','⠳','⠴','⠵','⠶','⠷','⠸','⠹','⠺','⠻','⠼','⠽','⠾','⠿','⡀','⡁','⡂','⡃','⡄','⡅','⡆','⡇','⡈','⡉','⡊','⡋','⡌','⡍','⡎','⡏','⡐','⡑','⡒','⡓','⡔','⡕','⡖','⡗','⡘','⡙','⡚','⡛','⡜','⡝','⡞','⡟','⡠','⡡','⡢','⡣','⡤','⡥','⡦','⡧','⡨','⡩','⡪','⡫','⡬','⡭','⡮','⡯','⡰','⡱','⡲','⡳','⡴','⡵','⡶','⡷','⡸','⡹','⡺','⡻','⡼','⡽','⡾','⡿','⢀','⢁','⢂','⢃','⢄','⢅','⢆','⢇','⢈','⢉','⢊','⢋','⢌','⢍','⢎','⢏','⢐','⢑','⢒','⢓','⢔','⢕','⢖','⢗','⢘','⢙','⢚','⢛','⢜','⢝','⢞','⢟','⢠','⢡','⢢','⢣','⢤','⢥','⢦','⢧','⢨','⢩','⢪','⢫','⢬','⢭','⢮','⢯','⢰','⢱','⢲','⢳','⢴','⢵','⢶','⢷','⢸','⢹','⢺','⢻','⢼','⢽','⢾','⢿','⣀','⣁','⣂','⣃','⣄','⣅','⣆','⣇','⣈','⣉','⣊','⣋','⣌','⣍','⣎','⣏','⣐','⣑','⣒','⣓','⣔','⣕','⣖','⣗','⣘','⣙','⣚','⣛','⣜','⣝','⣞','⣟','⣠','⣡','⣢','⣣','⣤','⣥','⣦','⣧','⣨','⣩','⣪','⣫','⣬','⣭','⣮','⣯','⣰','⣱','⣲','⣳','⣴','⣵','⣶','⣷','⣸','⣹','⣺','⣻','⣼','⣽','⣾','⣿']
 DOTS=['⠀','⠁','⠂','⠃','⠄','⠅','⠆','⠇','⠈','⠉','⠊','⠋','⠌','⠍','⠎','⠏','⠐','⠑','⠒','⠓','⠔','⠕','⠖','⠗','⠘','⠙','⠚','⠛','⠜','⠝','⠞','⠟','⠠','⠡','⠢','⠣','⠤','⠥','⠦','⠧','⠨','⠩','⠪','⠫','⠬','⠭','⠮','⠯','⠰','⠱','⠲','⠳','⠴','⠵','⠶','⠷','⠸','⠹','⠺','⠻','⠼','⠽','⠾','⠿']
 # sub function
-def emptyContent(width, height):
+def emptyContent(*args):
     content=[]
-    for i in range(height):
-        row=[]
-        for j in range(width):
-            row.append(' ')
-        content.append(row)
-    return content
+    if len(args)==1:
+        for i in range(args[0]):
+            content.append(' ')
+        return content
+    if len(args)==2:
+        for i in range(args[1]):
+            row=[]
+            for j in range(args[0]):
+                row.append(' ')
+            content.append(row)
+        return content
+
+def zeroContent(*args):
+    '''
+    height, width is the size of the content
+    '''
+    content=[]
+    if len(args)==1:
+        for i in range(args[0]):
+            content.append(0)
+        return content
+    if len(args)==2:
+        for i in range(args[0]):
+           row=[]
+           for j in range(args[1]):
+               row.append(0)
+           content.append(row)
+        return content
+
+def floatToPercent(value):
+    return str(round(value*100, 2))+'%'
 
 #text render class
 class TypeRender:
@@ -70,9 +95,18 @@ class UIElement:
         self.height=height
         self.title=title
         self.content=emptyContent(width-2, height-2)
-        self.CACHE=[]
+        self._CACHE=[]
+        self.type='BOX'
+    def update(self):
+        if self.type=='BOX':
+            self.writeBox()
+        else:
+            pass
     #draw the UIElement
     def writeBox(self):
+        contentHeight=len(self.content)
+        contentWidth=len(self.content[0])
+        self._CACHE=[]
         firstCol=[]
         firstCol.append(BOX[2])
         firstCol.append(BOX[0])
@@ -83,27 +117,37 @@ class UIElement:
             firstCol.append(BOX[0])
         firstCol.append(BOX[3])
         firstCol.append(' ')
-        self.CACHE.append(firstCol)
+        self._CACHE.append(firstCol)
         for i in range(self.height-2):
             midCol=[]
             midCol.append(BOX[1])
-            for j in range(self.width-2):
+            for j in range(contentWidth):
                 midCol.append(self.content[i][j])
             midCol.append(BOX[1])
             midCol.append(' ')
-            self.CACHE.append(midCol)
+            self._CACHE.append(midCol)
         endCol=[]
         endCol.append(BOX[4])
         for i in range(self.width-2):
             endCol.append(BOX[0])
         endCol.append(BOX[5])
         endCol.append(' ')
-        self.CACHE.append(endCol)
+        self._CACHE.append(endCol)
     
     def writeShadowBox(self):
         firstCol=[]
+
     def writeTitle(self):
         firstCol=[] 
+
+class UIElementGroup:
+    def __init__(self):
+        self.elements=[]
+    def addElement(self,element):
+        self.elements.append(element)
+    def updateElement(self):
+        for ele in self.elements:
+            ele.update()
 
 #text element
 class TextElement(UIElement):
@@ -123,6 +167,87 @@ class TextElement(UIElement):
         self.content=TypeRender.paraRender(text,self.width-2,self.height-2)
         self.writeBox()
 
+class ProgressBarH(UIElement):
+    '''
+    Basic element of progress bar, 
+    '''
+
+    def __init__(self,x,y,width,height,title, name):
+        _left=0
+        _right=0
+        _num=0
+        _length=0
+
+        super().__init__(x,y,width,height,title)
+        self.name=name
+        self._num=len(name)
+        self.value=zeroContent(self._num)
+        self.valueText=emptyContent(self._num)
+
+    def calculate(self):
+        self.valueText=emptyContent(self._num)
+        for i in range(self._num):
+            self.valueText[i]=floatToPercent(self.value[i])
+        self._left=max(len(self.name[i]) for i in range(self._num)) 
+        # self._right=max(len(str(self.value[i])) for i in range(self._num))
+        self._right=max(len(self.valueText[i]) for i in range(self._num))
+        self._length=self.width-self._left-self._right-4
+        self._barlength=[]
+        self._barlength_reduce=[]
+        for i in range(self._num):
+            self._barlength.append(int(self._length*self.value[i]))
+            self._barlength_reduce.append(self._length*self.value[i]-self._barlength[i])
+
+
+    def write(self,value):
+        self.value=value
+        self.calculate()
+        self.content.append(emptyContent(self.width-2))
+        # for k in range(self.num):
+        for i in range(self._num):
+            for j in range(self.width-2):
+                if j<self._left:
+                    try:
+                        self.content[2*i][j]=self.name[i][j]
+                    except:
+                        self.content[2*i][j]=' '
+                    self.content[2*i+1][j]=' '
+                elif j>=self._left and j<self._left+self._barlength[i]:
+                    self.content[2*i][j]=BARHOR[0]
+                    self.content[2*i+1][j]=' '
+                elif j==self._left+self._barlength[i]:
+                    if self._barlength_reduce[i]>0.875:
+                        self.content[2*i][j]=BARHOR[0]
+                    elif self._barlength_reduce[i]>0.75:
+                        self.content[2*i][j]=BARHOR[1]
+                    elif self._barlength_reduce[i]>0.625:
+                        self.content[2*i][j]=BARHOR[2]
+                    elif self._barlength_reduce[i]>0.5:
+                        self.content[2*i][j]=BARHOR[3]
+                    elif self._barlength_reduce[i]>0.375:
+                        self.content[2*i][j]=BARHOR[4]
+                    elif self._barlength_reduce[i]>0.25:
+                        self.content[2*i][j]=BARHOR[5]
+                    elif self._barlength_reduce[i]>0.125:
+                        self.content[2*i][j]=BARHOR[6]
+                    elif self._barlength_reduce[i]>0:
+                        self.content[2*i][j]=BARHOR[7]
+                    else:
+                        self.content[2*i][j]=' '
+                    self.content[2*i+1][j]=' '
+                # elif j==self._left+self._length+1:
+                #     self.content[2*i][j]=BARHOR[7]
+                #     self.content[2*i+1][j]=' '
+                elif j>self._left+self._length+1 and j <self._left+self._length+self._right+2:
+                    self.content[2*i][j]=self.valueText[i][j-self._left-self._length-2]
+                    self.content[2*i+1][j]=' '
+                else:
+                    self.content[2*i][j]=' '
+                    self.content[2*i+1][j]=' '
+        self.content.pop()
+        self.writeBox()
+                
+
 
 #define the terminal basic element
 class TerminalEvn:
@@ -132,7 +257,7 @@ class TerminalEvn:
         #color is the color of the element
         self.width=80
         self.height=25
-        self.SCREEN_CACHE=[]
+        self._SCREEN_CACHE=[]
         self.terminalInputContent=''
     #get the size of terminal
     def getTerminalSize():
@@ -169,7 +294,7 @@ class TerminalEvn:
     #init the SCREEN_CACHE
     def initScreenCache(self):
         self.width, self.height=TerminalEvn.getTerminalSize()
-        self.SCREEN_CACHE=emptyContent(self.width, self.height)
+        self._SCREEN_CACHE=emptyContent(self.width, self.height)
         # self.clearTerminal()
     #write the element to the SCREEN_CACHE
     def writeScreenCache(self,uielegroup:List[UIElement]):
@@ -181,7 +306,7 @@ class TerminalEvn:
                     if block.y+i>=self.height or block.x+j>=self.width:
                         continue 
                     else:
-                        self.SCREEN_CACHE[block.y+i][block.x+j]=block.CACHE[i][j]
+                        self._SCREEN_CACHE[block.y+i][block.x+j]=block._CACHE[i][j]
 
     #draw the element
     def draw(self):
@@ -193,7 +318,7 @@ class TerminalEvn:
         print('\033[0;0H')
         for i in range(self.height):
             for j in range(self.width):
-                print(self.SCREEN_CACHE[i][j], end='')
+                print(self._SCREEN_CACHE[i][j], end='')
             print('\n',end='')
     #wait for input
     def terminalInput(self):
@@ -203,5 +328,3 @@ class TerminalEvn:
         #wait for key input
         
         self.terminalInputContent=input()
-
-
