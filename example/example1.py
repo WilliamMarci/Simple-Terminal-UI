@@ -6,7 +6,7 @@ except:
 
 
 #main function    
-ter=TerminalEvn()
+ter=TerminalEnv()
 ter.initScreenCache()
 
 Running=True

@@ -17,6 +17,7 @@ BLOCK=['▖','▗','▘','▙','▚','▛','▜','▝','▞','▟','▀','▄','
 SHADEW=[' ','░','▒','▓','█']
 POINT=['.','o','O','@','*','+','x','X','#']
 ARROW=['←','↑','→','↓','↖','↗','↘','↙']
+RUNINGCHAR=['◜','◠','◝','◞','◡','◟','○']
 DOTS=['⠀','⠁','⠂','⠃','⠄','⠅','⠆','⠇','⠈','⠉','⠊','⠋','⠌','⠍','⠎','⠏','⠐','⠑','⠒','⠓','⠔','⠕','⠖','⠗','⠘','⠙','⠚','⠛','⠜','⠝','⠞','⠟','⠠','⠡','⠢','⠣','⠤','⠥','⠦','⠧','⠨','⠩','⠪','⠫','⠬','⠭','⠮','⠯','⠰','⠱','⠲','⠳','⠴','⠵','⠶','⠷','⠸','⠹','⠺','⠻','⠼','⠽','⠾','⠿']
 # sub function
 def emptyContent(*args):
@@ -50,7 +51,7 @@ def zeroContent(*args):
            content.append(row)
         return content
 
-def floatToPercent(value):
+def floatToPercentStr(value):
     return str(round(value*100, 2))+'%'
 
 #text render class
@@ -81,26 +82,31 @@ class TypeRender:
         return content
     def functionRender(text,width,height):
         pass
+
 #define the basic element of terminal UI
-#it is a block including title, size and position
 class UIElement:
     '''
-    x, y is the position of the element
-
-    width, height is the size of the element
+    UIElement 
+    ----------------
+    the basic element of TUI.
     
-    title is the title of the element which will be shown in the top of the element
+    All the element of TUI is based on UIElement. It is a rectangle block include content and margin.
     '''
-    def __init__(self, x,y,width,height, title, type='BOX'):
+    def __init__(self, x,y,width,height, title):
+        # basic parameter about position and size and title
         self.x=x
         self.y=y
         self.width=width
         self.height=height
         self.title=title
+        # content of the element
         self.content=emptyContent(width-2, height-2)
         self._CACHE=[]
-        self.type=type
-        self.shadow=1
+        # the setting of the element
+        self.type='BOX' #BOX(DEFAULT), SHADOW, TITLE, NONE
+        self.shadow=1   #0-4 (0 is no shadow)
+    
+    #update the element
     def update(self):
         type_method_dict = {
             'BOX': self.writeBox,
@@ -114,6 +120,11 @@ class UIElement:
     # set the type of the UIElement
     def setType(self,type):
         self.type=type
+
+    def setShadow(self,shadow):
+        self.shadow=shadow
+        self.writeShadowBox(shadow)
+    
     #draw the UIElement
     def writeBox(self):
         contentHeight=len(self.content)
@@ -180,10 +191,6 @@ class UIElement:
         for i in range(self.width-1):
             endShadow.append(SHADEW[shadow])
         self._CACHE.append(endShadow)
-
-    def setShadow(self,shadow):
-        self.shadow=shadow
-        self.writeShadowBox(shadow)
 
     def writeTitle(self):
         self._CACHE=[]
@@ -253,7 +260,8 @@ class TextElement(UIElement):
 
 class ProgressBarH(UIElement):
     '''
-    Basic element of progress bar, 
+    Basic element of progress bar. You can use method `write(value)` to update the value of the progress bar.
+    
     '''
 
     def __init__(self,x,y,width,height,title, name):
@@ -271,7 +279,7 @@ class ProgressBarH(UIElement):
     def calculate(self):
         self.valueText=emptyContent(self._num)
         for i in range(self._num):
-            self.valueText[i]=floatToPercent(self.value[i])
+            self.valueText[i]=floatToPercentStr(self.value[i])
         self._left=max(len(self.name[i]) for i in range(self._num)) 
         # self._right=max(len(str(self.value[i])) for i in range(self._num))
         self._right=max(len(self.valueText[i]) for i in range(self._num))
@@ -281,7 +289,6 @@ class ProgressBarH(UIElement):
         for i in range(self._num):
             self._barlength.append(int(self._length*self.value[i]))
             self._barlength_reduce.append(self._length*self.value[i]-self._barlength[i])
-
 
     def write(self,value):
         self.value=value
@@ -336,7 +343,12 @@ class ScatterChart(UIElement):
         super().__init__(x,y,width,height,title)
 
 #define the terminal basic element
-class TerminalEvn:
+class TerminalEnv:
+    '''
+    TerminalEnviorment`class TerminalEvn`
+    ------------------
+    It is the terminal enviorment of the TUI, like a canvas. It define the size of the terminal and the cache of the terminal.
+    '''
     def __init__(self):
         #x, y is the position of the element
         #width, height is the size of the element
@@ -379,9 +391,10 @@ class TerminalEvn:
 
     #init the SCREEN_CACHE
     def initScreenCache(self):
-        self.width, self.height=TerminalEvn.getTerminalSize()
+        self.width, self.height=TerminalEnv.getTerminalSize()
         self._SCREEN_CACHE=emptyContent(self.width, self.height)
         # self.clearTerminal()
+    
     #write the element to the SCREEN_CACHE
     def writeScreenCache(self,uielegroup:List[UIElement]):
         for k in range(len(uielegroup)):
@@ -399,13 +412,14 @@ class TerminalEvn:
         # print(self.SCREEN_CACHE)
         
         #clear the terminal
-        TerminalEvn.clearTerminal()
+        TerminalEnv.clearTerminal()
         #draw the element
         print('\033[0;0H')
         for i in range(self.height):
             for j in range(self.width):
                 print(self._SCREEN_CACHE[i][j], end='')
             print('\n',end='')
+    
     #wait for input
     def terminalInput(self):
         #move cursor to the bottom

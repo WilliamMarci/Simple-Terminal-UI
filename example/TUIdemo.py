@@ -17,6 +17,7 @@ BLOCK=['▖','▗','▘','▙','▚','▛','▜','▝','▞','▟','▀','▄','
 SHADEW=[' ','░','▒','▓','█']
 POINT=['.','o','O','@','*','+','x','X','#']
 ARROW=['←','↑','→','↓','↖','↗','↘','↙']
+RUNINGCHAR=['◜','◠','◝','◞','◡','◟','○']
 DOTS=['⠀','⠁','⠂','⠃','⠄','⠅','⠆','⠇','⠈','⠉','⠊','⠋','⠌','⠍','⠎','⠏','⠐','⠑','⠒','⠓','⠔','⠕','⠖','⠗','⠘','⠙','⠚','⠛','⠜','⠝','⠞','⠟','⠠','⠡','⠢','⠣','⠤','⠥','⠦','⠧','⠨','⠩','⠪','⠫','⠬','⠭','⠮','⠯','⠰','⠱','⠲','⠳','⠴','⠵','⠶','⠷','⠸','⠹','⠺','⠻','⠼','⠽','⠾','⠿']
 # sub function
 def emptyContent(*args):
@@ -50,9 +51,14 @@ def zeroContent(*args):
            content.append(row)
         return content
 
-def floatToPercent(value):
+def floatToPercentStr(value):
     return str(round(value*100, 2))+'%'
 
+def linearSpace(start,end,num):
+    space=[]
+    for i in range(num):
+        space.append(start+(end-start)*i/(num-1))
+    return space
 #text render class
 class TypeRender:
     def __init__(self):
@@ -79,10 +85,14 @@ class TypeRender:
                     content[i][j]=' '
             isEnd=False
         return content
+    
+    def inlineRender(text,width,type='left'):
+        pass
+
     def functionRender(text,width,height):
         pass
+
 #define the basic element of terminal UI
-#it is a block including title, size and position
 class UIElement:
     '''
     UIElement 
@@ -234,7 +244,7 @@ class UIElementGroup:
         self.elements=[]
     def addElement(self,element):
         self.elements.append(element)
-    def updateElement(self):
+    def updateElement(self): 
         for ele in self.elements:
             ele.update()
 
@@ -278,7 +288,7 @@ class ProgressBarH(UIElement):
     def calculate(self):
         self.valueText=emptyContent(self._num)
         for i in range(self._num):
-            self.valueText[i]=floatToPercent(self.value[i])
+            self.valueText[i]=floatToPercentStr(self.value[i])
         self._left=max(len(self.name[i]) for i in range(self._num)) 
         # self._right=max(len(str(self.value[i])) for i in range(self._num))
         self._right=max(len(self.valueText[i]) for i in range(self._num))
@@ -337,12 +347,41 @@ class ProgressBarH(UIElement):
         self.content.pop()
         self.writeBox()
                 
-class ScatterChart(UIElement):
+class Scatter(UIElement):
     def __init__(self,x,y,width,height,title):
         super().__init__(x,y,width,height,title)
+        self.type='NONE'
 
+        #data setting
+        self.xdata=[]
+        self.ydata=[]
+        self.color=[]
+        self.point=POINT[5]
+        self._xposition=[]
+        self._yposition=[]
+
+        #label of the axis setting
+        self.isXaxis=True
+        self.isYaxis=True
+        self.xlim=[0,1]
+        self.ylim=[0,1]
+        self._xrange=self.xlim[1]-self.xlim[0]
+        self._yrange=self.ylim[1]-self.ylim[0]
+        self.xtick=linearSpace(self.xlim[0],self.xlim[1],(self.width-2)//4)
+        self.ytick=linearSpace(self.ylim[0],self.ylim[1],(self.height-2)//8)
+        self.xlabel='x'
+        self.ylabel='y'
+        self._xticktext=[]
+        self._yticktext=[]
+
+        #legend setting
+        self._isLegend=False
+        self._legend=[]
+
+
+        
 #define the terminal basic element
-class TerminalEvn:
+class TerminalEnv:
     '''
     TerminalEnviorment`class TerminalEvn`
     ------------------
@@ -370,9 +409,9 @@ class TerminalEvn:
             else:
                 return [80, 25]
         else:
-            return [80, 25]
+            # return [80, 25]
+            [os.get_terminal_size().columns, os.get_terminal_size().lines]
         
-        # return [80, 25]
     #clear the terminal
     def clearTerminal():
         TerminalEvn=os.getenv('TERM')
@@ -390,7 +429,7 @@ class TerminalEvn:
 
     #init the SCREEN_CACHE
     def initScreenCache(self):
-        self.width, self.height=TerminalEvn.getTerminalSize()
+        self.width, self.height=TerminalEnv.getTerminalSize()
         self._SCREEN_CACHE=emptyContent(self.width, self.height)
         # self.clearTerminal()
     
@@ -411,13 +450,14 @@ class TerminalEvn:
         # print(self.SCREEN_CACHE)
         
         #clear the terminal
-        TerminalEvn.clearTerminal()
+        TerminalEnv.clearTerminal()
         #draw the element
         print('\033[0;0H')
         for i in range(self.height):
             for j in range(self.width):
                 print(self._SCREEN_CACHE[i][j], end='')
             print('\n',end='')
+    
     #wait for input
     def terminalInput(self):
         #move cursor to the bottom
@@ -434,7 +474,7 @@ class TerminalEvn:
 #define the draw function of the UI
 
 #main function    
-ter=TerminalEvn()
+ter=TerminalEnv()
 ter.initScreenCache()
 
 Running=True
