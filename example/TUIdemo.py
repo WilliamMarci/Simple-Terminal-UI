@@ -14,7 +14,9 @@ DASH1=['┄','┅','┆','┇','┈','┉','┊','┋']
 DOUBLE=['═','║','╔','╗','╚','╝','╠','╣','╦','╩','╬']
 BARHOR=['█','▉','▊','▋','▌','▍','▎','▏']
 BARVER=['█','▇','▆','▅','▄','▃','▂','▁']
-BLOCK=['▖','▗','▘','▙','▚','▛','▜','▝','▞','▟','▀','▄','▐','▌']
+BLOCK=[' ','▘','▝','▀','▖','▌','▞','▛','▗','▚','▐','▜','▄','▙','▟','█']
+#sort by 1-LT 2-RT 3-LD 4-RD and they combine 4 pixel
+DOUBLEPIXEL=[' ','▀','▄','█']
 SHADOW=[' ','░','▒','▓','█']
 POINT=['.','o','O','@','*','+','x','X','#']
 ARROW=['←','↑','→','↓','↖','↗','↘','↙']
@@ -101,7 +103,6 @@ class ChartCaculator:
         ticks=list(set(ticks))
         ticks.sort()
         return ticks
-
 
 class CanvasRender:
     def __init__(self):
@@ -227,28 +228,50 @@ class TypeRender:
         pass
 
     def shortNumberRender(number):
-        if 100<number<1000:
+        if 100<abs(number)<1000:
             return str(round(number,1))
-        elif 1<number<=100:
+        elif 1<abs(number)<=100:
             #show 2 decimal
             return str(round(number,2))
-        elif 0.01<=number<=1:
+        elif 0.01<=abs(number)<=1:
             #show 3 decimal
             return str(round(number,3))
-        elif 1e-10<=number<0.01:
+        elif 1e-10<=abs(number)<0.01:
             #show it as xe-n
             scinum=format(number,'.1e')
-            scinum=scinum.replace('e','⏨')
+            scinum=scinum.replace('e-0','⏨-')
             return scinum
         elif abs(number)<=1e-10:
             return '0'
         else:
             #show it as xen
             scinum=format(number,'.1e')
-            scinum=scinum.replace('e','⏨')
+            scinum=scinum.replace('e+0','⏨+')
             return scinum
         
-            
+class ImageRender:
+    def __init__(self) -> None:
+        pass
+    def doublePixelsRender(list_data,isInverse=False):
+        #x as 2, y as 1
+
+        width=len(list_data[0])
+        height=len(list_data)
+        list_data.append(zeroContent(width))
+        content=[]
+        for i in range(height//2):
+            row=[]
+            for j in range(width):
+                x=list_data[2*i][j]!=0 and list_data[2*i][j]!=TPC and list_data[2*i][j]!=None and list_data[2*i][j]!=' ' and list_data[2*i][j]!='0'
+                y=list_data[2*i+1][j]!=0 and list_data[2*i+1][j]!=TPC and list_data[2*i+1][j]!=None and list_data[2*i+1][j]!=' ' and list_data[2*i+1][j]!='0'
+                if isInverse:
+                    doublepixel=3-x-2*y
+                else:
+                    doublepixel=x+2*y 
+                row.append(DOUBLEPIXEL[doublepixel])
+            content.append(row)
+
+        return content            
         
 #define the basic element of terminal UI
 class UIElement:
@@ -422,8 +445,8 @@ class TextElement(UIElement):
         `text` is the text you want to write
         '''
         self.content=TypeRender.paraRender(text,self.width-2,self.height-2)
-        self.writeBox()
-
+        # self.writeBox()
+        self.update()
 
 class ProgressBarH(UIElement):
     '''
@@ -503,7 +526,8 @@ class ProgressBarH(UIElement):
                     self.content[2*i][j]=' '
                     self.content[2*i+1][j]=' '
         self.content.pop()
-        self.writeBox()
+        # self.writeBox()
+        self.update()
                 
 class Scatter(UIElement):
     def __init__(self,x,y,width,height,title):
@@ -674,15 +698,50 @@ class Scatter(UIElement):
                         self.content[j+3][tick_xposition[i]+leftmirgin]=DASH1[2]
         if self.isXlabel:
             xlabelEle=TypeRender.inlineRender(self.xlabel,len(self.xlabel),'left')
-            CanvasRender.drawWordOnCanvas(self.width-rightmirgin-1,self.height-3,xlabelEle,self.content,True)
+            CanvasRender.drawWordOnCanvas(self.width-rightmirgin-1,self.height-4,xlabelEle,self.content,True)
         if self.isYlabel:
             ylabelEle=TypeRender.inlineRender(self.ylabel,len(self.ylabel),'left')
             CanvasRender.drawWordOnCanvas(0,1,ylabelEle,self.content,True)
 
 
-        self.writeNone()
+        self.update()
+
+class Image(UIElement):
+    def __init__(self,x,y,width,height,title):
+        super().__init__(x,y,width,height,title)
+        self.image=[]
+        
+        #image setting
+        self.isTitle=True
+        self.isSize=True
+        self.imagetype='double'
+
+        self.imagetitle='Image'
+        self.inverse=False
+    
+    def imageFromFile(self,filename):
+        self.image=[]
+        with open(filename,'r') as f:
+            for line in f.readlines():
+                self.image.append(line.strip().split(','))
+        self.createImage(self.image)
+
+    def createImage(self,image):
+        self.image=image
 
         
+        if self.imagetype=='double':
+            imagecontent=ImageRender.doublePixelsRender(image,self.inverse)
+
+        self.content=CanvasRender.drawRectOnCanvas(0,0,imagecontent,self.content,True)
+
+        if self.isTitle:
+            titleEle=TypeRender.inlineRender(self.imagetitle,len(self.imagetitle),'center')
+            CanvasRender.drawWordOnCanvas(0,0,titleEle,self.content,True)
+        if self.isSize:
+            sizeEle=TypeRender.inlineRender(str(len(image[0]))+'x'+str(len(image)),len(self.title),'left')
+            CanvasRender.drawWordOnCanvas(0,1,sizeEle,self.content,True)
+        self.update()
 
         
 #define the terminal basic element
@@ -712,10 +771,11 @@ class TerminalEnv:
             elif TerminalEvn=='windows':
                 return os.get_terminal_size()
             else:
-                return [80, 25]
+                # return [80, 50]
+                return [os.get_terminal_size().columns-3, os.get_terminal_size().lines-3]
         else:
             # return [80, 25]
-            [os.get_terminal_size().columns, os.get_terminal_size().lines]
+            return [os.get_terminal_size().columns, os.get_terminal_size().lines]
         
     #clear the terminal
     def clearTerminal():
@@ -776,8 +836,6 @@ class TerminalEnv:
 
 
 
-#define the draw function of the UI
-
 #main function    
 ter=TerminalEnv()
 ter.initScreenCache()
@@ -789,23 +847,26 @@ text='This is a demo of terminal UI.\nI will show you how to use it.\nOr I can u
 textele=TextElement(0,0,30,10,'Introduction')
 textele.write(text)
 
-x=[1,2,3,4,5,6]
-y=[0.1,0.2,0.3,0.4,0.5,0.6]
+x=linearSpace(0,6.28,100)
+y=[math.sin(i) for i in x]
 
-chart=Scatter(30,0,50,18,'Chart')
+chart=Scatter(30,0,50,21,'Chart')
 chart.xlabel='xlabel'
-chart.ylabel='ylabel'
+chart.ylabel='ylabels'
 chart.scattertitle='Scatter Example'
-chart.plot(x,y)
+chart.plot(x,y,'+')
 
-
-# chart.setAxislim([0,6],[0,1])
+#image example
+image=Image(0,25,80,27,'Image')
+image.imagetitle='A CUTE Neko Girl'
+# image.inverse=True
+image.imageFromFile('assets/data/neko.csv')
 
 bar1=ProgressBarH(0,10,30,5,'Progress Bar',['Name1:','Example:'])
 bar1.write([0.5,0.5])
 histext=''
-his=TextElement(0,15,30,9,'History')
-sta=TextElement(30,20,50,4,'Status')
+his=TextElement(0,15,30,10,'History')
+sta=TextElement(30,21,50,4,'Status')
 statext='full\n'
 statext2='not full'
 
@@ -820,7 +881,8 @@ ele.addElement(chart)
 ele.addElement(bar1)
 ele.addElement(his)
 ele.addElement(sta)
-sta=0
+ele.addElement(image)
+stas=0
 os.system('clear')
 
 run=1
@@ -834,11 +896,11 @@ while Running:
     io=ter.terminalInput()
     
 
-    if sta>6:
+    if stas>6:
         #clear text before first \n of histext
         histext=histext[histext.find('\n')+1:]
     histext=histext+io+'\n'
-    sta+=1
+    stas+=1
     try:
         bar1.write([float(io),float(io)*0.3])
     except:
