@@ -80,14 +80,16 @@ def pin():
 
 #add a camvas
 data=ReadFileAsArray('assets/data/neko.csv')
-palyground=Image(0,0,80,27,'Conway Game')
+playground=Image(0,0,80,27,'Conway Game')
 game=ConwayGame(data)
-palyground.isTitle=False
-palyground.isSize=False
-palyground.createImage(game.array)
+playground.isTitle=False
+playground.isSize=False
+playground.createImage(game.array)
+playground.setType('SHADOW')
+
 
 #add a text
-intro=Text(0,27,30,10,'Introduction')
+intro=Text(0,27,30,9,'Introduction')
 text='Conway Game is a zero player games.\n\n set:`set x y`.\n run:`run times`.\nexit:`exit` or `quit`.'
 intro.write(text)
 
@@ -98,23 +100,22 @@ bar_alive.write([alive_rate])
 bar_alive.setType('TITLE')
 
 #add a text to show the status
-status=Text(30,30,50,7,'Status')
+status=Text(30,30,50,6,'Status')
 status.write('')
 #status
 run=0
 alive=game.getAlive()
-among=game.width*game.height
-starus_str='run: '+str(run)+'\n'+'alive: '+str(alive)+'\n'+'among: '+str(among)
+amount=game.width*game.height
+starus_str='run: '+str(run)+'\n'+'alive: '+str(alive)+'\n'+'amount: '+str(amount)
 status.write(starus_str)
 #add a group of UI elements
 ui_eles=UIElementGroup()
-ui_eles.addElement(palyground)
+ui_eles.addElement(playground)
 ui_eles.addElement(intro)
 ui_eles.addElement(bar_alive)
 ui_eles.addElement(status)
 
 isInput=True
-isSet=False
 times=0
 
 while running:
@@ -148,37 +149,36 @@ while running:
         elif command=='set':
             isSet=True
             try:
-                x=int(io.split(' ')[1])
-                y=int(io.split(' ')[2])
-                if game.array[x][y]=='0':
+                y=int(io.split(' ')[1])
+                x=int(io.split(' ')[2])
+                if game.array[x][y]!='1':
                     game.array[x][y]='1'
-                else:
+                elif game.array[x][y]=='1':
                     game.array[x][y]='0'
+                else:
+                    pass
                 # palyground.createImage(game.array)
             except:
                 pass
 
     ui_eles.updateElement()
     ter.writeScreenCache(ui_eles.elements)
+
     ter.draw()
     if times>0:
-
-        time.sleep(0.1)
+        time.sleep(0.2)
         game.update()
         run+=1
-        alive=game.getAlive()
-        alive_rate=alive/(game.width*game.height)
-        bar_alive.write([alive_rate])
-        starus_str='run: '+str(run)+'\n'+'alive: '+str(alive)+'\n'+'among: '+str(among)
-        status.write(starus_str)
     
-    if isSet:
-        alive=game.getAlive()
-        alive_rate=alive/(game.width*game.height)
-        bar_alive.write([alive_rate])
-        starus_str='run: '+str(run)+'\n'+'alive: '+str(alive)+'\n'+'among: '+str(among)
-        status.write(starus_str)
-        isSet=False
+    alive=game.getAlive()
+    alive_rate=alive/(game.width*game.height)
+    bar_alive.write([alive_rate])
+    starus_str='run: '+str(run)+'\n'+'alive: '+str(alive)+'\n'+'amount: '+str(amount)
+    if times>0:
+        starus_str=starus_str+'\n'+'run left: '+str(times-1)+' times'+ '          Now Running......'
+
+    status.write(starus_str)
+
         
 
-    palyground.createImage(game.array)
+    playground.createImage(game.array)

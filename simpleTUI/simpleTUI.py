@@ -848,3 +848,7 @@ class TerminalEnv:
         
         self.terminalInputContent=input()
         return self.terminalInputContent
+
+#end
+
+

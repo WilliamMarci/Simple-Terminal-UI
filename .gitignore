@@ -3,4 +3,4 @@ example/__pycache__/*
 tutorial/layout.drawio
 example/functiontest.py
 example/simpleTUI/__pycache__/*
-
+sync.py
