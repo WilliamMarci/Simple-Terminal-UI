@@ -1,5 +1,4 @@
 from simpleTUI.simpleTUI import *
-
 #main function    
 ter=TerminalEnv()
 ter.initScreenCache()
@@ -8,45 +7,69 @@ Running=True
 ele=UIElementGroup()
 
 text='This is a demo of terminal UI.\nI will show you how to use it.\nOr I can use the temp to show you. using name of temp.'
-textele=Text(0,0,50,10,'Introduction')
+textele=Text(0,0,30,10,'Introduction')
 textele.write(text)
-textele2=Text(50,0,30,10,'Name')
-textele2.write('My name is Amadeus\n1 \n2 \n3 \n4 \n5 \n6 \n7 \n8 \n9 \n10 \n11 \n12 \n13 \n14 \n15 \n16')
 
-bar1=ProgressBarH(0,10,80,5,'Progress Bar',['Name1:','Example:'])
+x=linearSpace(0,6.28,100)
+y=[math.sin(i) for i in x]
+
+chart=Scatter(30,0,50,21,'Chart')
+chart.xlabel='xlabel'
+chart.ylabel='ylabels'
+chart.scattertitle='Scatter Example'
+chart.plot(x,y,'+')
+
+#image example
+image=Image(0,25,80,27,'Image')
+image.imagetitle='A CUTE Neko Girl'
+# image.inverse=True
+image.imageFromFile('assets/data/neko.csv')
+
+bar1=ProgressBarH(0,10,30,5,'Progress Bar',['Name1:','Example:'])
 bar1.write([0.5,0.5])
 histext=''
-his=Text(0,15,50,9,'History')
-sta=Text(50,15,30,9,'Status')
+his=Text(0,15,30,10,'History')
+sta=Text(30,21,50,4,'Status')
 statext='full\n'
 statext2='not full'
+
+sta.setType('SHADOW')
+bar1.setType('TITLE')
+his.setType('SHADOW')
+chart.setType('BOX')
+# textele2.setType('NONE')
+
 ele.addElement(textele)
-ele.addElement(textele2)
+ele.addElement(chart)
 ele.addElement(bar1)
 ele.addElement(his)
 ele.addElement(sta)
-sta=0
+ele.addElement(image)
+stas=0
 os.system('clear')
+
+run=1
 while Running:
-    #clear the terminal
+    his.setShadow(run%5)
     ele.updateElement()
+
     ter.writeScreenCache(ele.elements)
-
     ter.draw()
+
     io=ter.terminalInput()
+    
 
-
-    if sta>6:
+    if stas>6:
         #clear text before first \n of histext
         histext=histext[histext.find('\n')+1:]
     histext=histext+io+'\n'
-    sta+=1
+    stas+=1
     try:
         bar1.write([float(io),float(io)*0.3])
     except:
         pass
     his.write(histext)
+
     if ter.terminalInputContent=='exit' or ter.terminalInputContent=='quit':
         Running=False
-
-
+    run+=1
