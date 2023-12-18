@@ -28,40 +28,46 @@ Use python to draw your Terminal UI!
   - `summonRectangular` summon rectangular
   - `rectOnCanvas` draw rectangular on canvas
 
-## Basic class
+## Basic class:
 -   [x] `UIElement`
 -   [x] `TerminalEnv`
 -   [ ] `AnimeElement`
 
-## Achieved class
+## Achieved class:
 -   [x] `TypeRender` (need more functions)
 -   [x] `CanvasRender`
 -   [x] `TextElement`
 -   [x] `ProgressBar` (H)
+-   [x] `Scatter`
+-   [x] `Image`
 
 ## Planning class:
 -   [ ] `BarChart`
 -   [ ] `Circle`
 -   [ ] `Clock`
--   [ ] `Scatter`
--   [ ] `Image`
 -   [ ] `RunningChar`
 -   [ ] `Card`
 -   [ ] `Table`
+-   [ ] `Tree`
 
+## Const
 ```python
-BOX=['─','│','┌','┐','└','┘','├','┤','┬','┴','┼']
-BOLDBOX=['━','┃','┏','┓','┗','┛','┣','┫','┳','┻','╋']
-CORNER1=['┒','┕']
-TICKS=['┠','┨','┯','┷']
+#the basic element of terminal UI
+BOX=['─','│','┌','┐','└','┘','├','┤','┬','┴','┼']   #Ordinary Box
+BOLDBOX=['━','┃','┏','┓','┗','┛','┣','┫','┳','┻','╋'] #Bold Box
+CORNER1=['┒','┕']   #Corner fot left-up to right-down shadow
+TICKS=['┠','┨','┯','┷']      
 DASH1=['┄','┅','┆','┇','┈','┉','┊','┋']
 DOUBLE=['═','║','╔','╗','╚','╝','╠','╣','╦','╩','╬']
 BARHOR=['█','▉','▊','▋','▌','▍','▎','▏']
 BARVER=['█','▇','▆','▅','▄','▃','▂','▁']
-BLOCK=['▖','▗','▘','▙','▚','▛','▜','▝','▞','▟','▀','▄','▐','▌']
-SHADEW=[' ','░','▒','▓','█']
+BLOCK=[' ','▘','▝','▀','▖','▌','▞','▛','▗','▚','▐','▜','▄','▙','▟','█']
+#sort by 1-LT 2-RT 3-LD 4-RD and they combine 4 pixel
+DOUBLEPIXEL=[' ','▀','▄','█']
+SHADOW=[' ','░','▒','▓','█']
 POINT=['.','o','O','@','*','+','x','X','#']
 ARROW=['←','↑','→','↓','↖','↗','↘','↙']
 RUNINGCHAR=['◜','◠','◝','◞','◡','◟','○']
 DOTS=['⠀','⠁','⠂','⠃','⠄','⠅','⠆','⠇','⠈','⠉','⠊','⠋','⠌','⠍','⠎','⠏','⠐','⠑','⠒','⠓','⠔','⠕','⠖','⠗','⠘','⠙','⠚','⠛','⠜','⠝','⠞','⠟','⠠','⠡','⠢','⠣','⠤','⠥','⠦','⠧','⠨','⠩','⠪','⠫','⠬','⠭','⠮','⠯','⠰','⠱','⠲','⠳','⠴','⠵','⠶','⠷','⠸','⠹','⠺','⠻','⠼','⠽','⠾','⠿']
+TPC=' ' #Transparent Character
 ``` 
